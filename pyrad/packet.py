@@ -509,7 +509,7 @@ class AuthPacket(Packet):
             self.id = self.CreateID()
 
         header = struct.pack('!BBH16s', self.code, self.id,
-            (20 + len(attr)), self.authenticator)
+                             (20 + len(attr)), self.authenticator)
 
         return header + attr
 
@@ -613,17 +613,6 @@ class AuthPacket(Packet):
 
         return password == md5_constructor("%s%s%s" % (chapid, userpwd, challenge)).digest()
 
-    def VerifyAuthRequest(self):
-        """Verify request authenticator.
-
-        :return: True if verification failed else False
-        :rtype: boolean
-        """
-        assert(self.raw_packet)
-        hash = md5_constructor(self.raw_packet[0:4] + 16 * six.b('\x00') +
-                               self.raw_packet[20:] + self.secret).digest()
-        return hash == self.authenticator
-
 
 class AcctPacket(Packet):
     """RADIUS accounting packets. This class is a specialization
@@ -661,12 +650,14 @@ class AcctPacket(Packet):
     def VerifyAcctRequest(self):
         """Verify request authenticator.
 
-        :return: True if verification failed else False
+        :return: False if verification failed else True
         :rtype: boolean
         """
         assert(self.raw_packet)
+
         hash = md5_constructor(self.raw_packet[0:4] + 16 * six.b('\x00') +
-                self.raw_packet[20:] + self.secret).digest()
+                               self.raw_packet[20:] + self.secret).digest()
+
         return hash == self.authenticator
 
     def RequestPacket(self):
@@ -684,8 +675,8 @@ class AcctPacket(Packet):
             self.id = self.CreateID()
 
         header = struct.pack('!BBH', self.code, self.id, (20 + len(attr)))
-        self.authenticator = md5_constructor(header[0:4] + 16 * six.b('\x00') + attr
-            + self.secret).digest()
+        self.authenticator = md5_constructor(header[0:4] + 16 * six.b('\x00') +
+                                             attr + self.secret).digest()
         return header + self.authenticator + attr
 
 class CoAPacket(Packet):
@@ -724,7 +715,7 @@ class CoAPacket(Packet):
     def VerifyCoARequest(self):
         """Verify request authenticator.
 
-        :return: True if verification failed else False
+        :return: False if verification failed else True
         :rtype: boolean
         """
         assert(self.raw_packet)
@@ -747,8 +738,8 @@ class CoAPacket(Packet):
             self.id = self.CreateID()
 
         header = struct.pack('!BBH', self.code, self.id, (20 + len(attr)))
-        self.authenticator = md5_constructor(header[0:4] + 16 * six.b('\x00') + attr
-            + self.secret).digest()
+        self.authenticator = md5_constructor(header[0:4] + 16 * six.b('\x00') +
+                                             attr + self.secret).digest()
         return header + self.authenticator + attr
 
 def CreateID():
